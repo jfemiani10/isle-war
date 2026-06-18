@@ -22,22 +22,41 @@ my_territory(T) :- owner(T, N), my_id(N).
 
 % adjacent_territory(T2) :- not owner(T2, N), not my_id(N), my_territory(T), neighbor(T,T2).
 
+%Example
+% to_fortify(17).
 
-% #show adjacent_territory/1.
+%NOTE: Need to specify phase when doing each line.
+attack_choice(T) | no_attack_choice(T) :- territory(T), phase(attack).
+:- phase(attack), #count{S:attack_choice(S)} != 1.
 
-% Cannot do this, must be filtered first, strong constraint
 
-external(T) :- my_territory(T), neighbor(T,T1), not my_territory(T1).
+
+% =============== Derived Facts =================================
+
+% adjacent is an enemy territory that is neighbors with my territory
+adjacent(T2) :- my_territory(T), neighbor(T,T2), not my_territory(T2).
+% #show adjacent/1.
+
+% owned territory
+my_territory(T) :- owner(T, N), my_id(N).
+
+% bordering an enemy (front line)
+my_border(T)  :- my_territory(T), neighbor(T,T2), not my_territory(T2).
+
 
 % =============== Fortify Phase ====================================
+
+place_choice(T) | no_place_choice(T) :- territory(T), phase(fortify).
+:- phase(fortify), #count{S:place_choice(S)} != 1.
+
+% generated place cannot by my_territory
 :- phase(fortify), place_choice(T), not my_territory(T).
 
-
-:~ phase(fortify), place_choice(T), my_territory(T), not external(T). [1@3]
+% strongly prefer placing on the front line
+:~ phase(fortify), place_choice(T), not my_border(T). [1@3]
 
 %Can add more rules if planning on attacking certain territory based on winning continent
 %And trying to capture continent
-
 
 
 %Base case so there is only 1. Selected min arbitrarily.

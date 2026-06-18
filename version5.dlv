@@ -109,6 +109,8 @@ my_territory(ET, N) :- phase(conquer), move(MT, ET, N).
 
 
 
+phase(pass) :- phase(attack), not attack_choice(T2).
+
 
 % =========== Move =========================
 % move(MT, ET, N) :- phase(move), my_territory(MT), my_territory(ET),

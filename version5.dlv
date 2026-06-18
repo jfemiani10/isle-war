@@ -90,7 +90,7 @@ attack(MT, ET) :- phase(attack), attack_from(MT), attack_choice(ET).
 
 
 
-% conquered(MT, ET) :- phase(attack), attack(MT, ET), armies_present(ET, N2), armies_present(MT,N), N > N2, N = 0, N2 > 1.
+conquered(MT, ET) :- phase(attack), attack(MT, ET), armies_present(ET, N2), armies_present(MT,N), N > N2, N = 0, N2 > 1.
 
 % phase(conquer) :- conquered(MT, ET).
 

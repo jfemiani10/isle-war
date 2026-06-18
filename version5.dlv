@@ -65,21 +65,6 @@ place_choice(T) | no_place_choice(T) :- territory(T), phase(fortify).
 % fortify the one territory during fortify phase
 fortify(T, A) :- phase(fortify), to_fortify(A), place_choice(T).
 
-% #show my_territory/1.
-
-
-
-
-% pass if we ever have to choose
-% phase(choose) :- phase(fortify).
-% phase(attack) :- phase(choose).
-
-% #show phase/1.
-
-
-
-% phase(pass) :- 
-
 
 
 % =========== Attack ===========================
@@ -102,7 +87,7 @@ max_diff(D2) :-  phase(attack), #max{D : troop_diff(T, D)} = D2.
 
 attack_from(T) :- phase(attack), attack_choice(T2), neighbor(T,T2), armies_present(T,N), armies_present(T2,N2), max_diff(D), N-N2=D.
 
-% %Notes
+%Notes
 attack(MT, ET) :- phase(attack), attack_from(MT), attack_choice(ET).
 
 
@@ -110,19 +95,12 @@ attack(MT, ET) :- phase(attack), attack_from(MT), attack_choice(ET).
 
 
 
-% %Conquer
-
-
-
-conquered(MT, ET) :- phase(attack), attack(MT, ET), armies_present(ET, N2), armies_present(MT,N), N > N2, N = 0, N2 > 1.
-
-% phase(conquer) :- conquered(MT, ET).
-
-
-
 %=========== Conquer Phase =================
 
 %For now just move all but 1 troop
+conquered(MT, ET) :- phase(attack), attack(MT, ET), armies_present(ET, N2), armies_present(MT,N), N > N2, N = 0, N2 > 1.
+
+
 move(MT, ET, N) :- phase(conquer), conquered(MT,ET), armies_present(MT, A), N = A - 1.
 
 my_territory(ET, N) :- phase(conquer), move(MT, ET, N).
@@ -131,8 +109,8 @@ my_territory(ET, N) :- phase(conquer), move(MT, ET, N).
 
 
 
-
-% move(MT, ET, N) :- phase(move), my_territory(MT), my_territory(ET), 
+% =========== Move =========================
+% move(MT, ET, N) :- phase(move), my_territory(MT), my_territory(ET),
 
 
 
@@ -148,14 +126,14 @@ my_territory(ET, N) :- phase(conquer), move(MT, ET, N).
 
 % attack_from(D) :- max_diff(D), D > 2.
 
-#show place_choice/1.
-#show fortify/2.
+% #show place_choice/1.
+% #show fortify/2.
 % #show external/1.
 % #show attack_choice/1.
 
 % #show adjacent/1.
-#show attack_choice/1.
-#show attack_from/1.
+% #show attack_choice/1.
+% #show attack_from/1.
 % #show max_diff/1.
 % #show troop_diff/2.
-#show attack/2.
+% #show attack/2.

@@ -52,4 +52,6 @@ owner(6,0).
 owner(7,1).
 owner(8,2).
 owner(9,2).
+
+% phase(fortify).
 phase(choose).

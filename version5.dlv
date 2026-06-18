@@ -65,7 +65,7 @@ place_choice(T) | no_place_choice(T) :- territory(T), phase(fortify).
 % fortify the one territory during fortify phase
 fortify(T, A) :- phase(fortify), to_fortify(A), place_choice(T).
 
-
+% #show my_territory/1.
 
 
 
@@ -105,6 +105,11 @@ attack_from(T) :- phase(attack), attack_choice(T2), neighbor(T,T2), armies_prese
 % %Notes
 attack(MT, ET) :- phase(attack), attack_from(MT), attack_choice(ET).
 
+
+:~ phase(attack), attack(MT,ET), #min{MT : attack(MT,ET)} != T, attack_from(T). [1@1]
+
+
+
 % %Conquer
 
 
@@ -143,8 +148,8 @@ my_territory(ET, N) :- phase(conquer), move(MT, ET, N).
 
 % attack_from(D) :- max_diff(D), D > 2.
 
-% #show place_choice/1.
-% #show fortify/2.
+#show place_choice/1.
+#show fortify/2.
 % #show external/1.
 % #show attack_choice/1.
 

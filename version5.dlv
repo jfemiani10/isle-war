@@ -98,7 +98,7 @@ attack(MT, ET) :- phase(attack), attack_from(MT), attack_choice(ET).
 %=========== Conquer Phase =================
 
 %For now just move all but 1 troop
-conquered(MT, ET) :- phase(attack), attack(MT, ET), armies_present(ET, N2), armies_present(MT,N), N > N2, N = 0, N2 > 1.
+conquered(MT, ET) :- phase(attack), attack(MT, ET), armies_present(ET, N2), armies_present(MT,N), N > N2, N2 = 0, N > 1.
 
 
 move(MT, ET, N) :- phase(conquer), conquered(MT,ET), armies_present(MT, A), N = A - 1.

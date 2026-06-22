@@ -116,4 +116,4 @@ move(MT,ET,A) :- conquered(MT,ET), new_border(ET), armies_present(MT,A2), A2 > 3
 move(MT,ET,A) :- conquered(MT,ET), new_border(ET), armies_present(MT,A2), A2 <= 3, A = A2 - 1.
 
 %Conquered tile is interior (safe): be aggressive and move all but 1 to keep advancing.
-move(MT,ET,A) :- conquered(MT,ET), not new_border(ET), armies_present(MT,A2), A = A2 - 1.
+move(MT,ET,1) :- conquered(MT,ET), not new_border(ET), armies_present(MT,A2).

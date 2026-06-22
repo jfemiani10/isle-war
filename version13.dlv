@@ -45,7 +45,7 @@ fortify(T, A) :- phase(fortify), to_fortify(A), place_choice(T).
 attack_choice(T2) | no_attack_choice(T2) :- phase(choose), adjacent(T2).
 
 % Require exactly one attack_choice
-:- phase(choose), #count{S:attack_choice(S)} != 1.
+:- phase(choose), #count{S:attack_choice(S)} > 1.
 
 % Attacking always happens after the choose step
 % phase(attack) :- phase(choose).

@@ -98,7 +98,7 @@ attack_choice(T2) | no_attack_choice(T2) :- phase(choose), adjacent(T2).
 % (N1*2 > N2*3) or the attack is too likely to grind my stack down to 1 and lose the tile.
 
 %was 2 3(1.5). now 4 5 (1.25)
-:- phase(choose), attack_from(T), attack_choice(T2), armies_present(T,N1), armies_present(T2,N2), P = N1 * 4, Q = N2 * 5, P <= Q.
+:- phase(choose), attack_from(T), attack_choice(T2), armies_present(T,N1), armies_present(T2,N2), P = N1 * 2, Q = N2 * 3, P <= Q.
 
 
 %Move (second lowest priority, since ends turn after)

@@ -78,7 +78,8 @@ in_continent(T,X), in_continent(T1,X)}.
 A < E + 2.[1@8]
 
 %Target chokepoint (Should also function to break up continents)
-:~ phase(choose), attack_choice(T2), not chokepoint(T2). [1@2]
+% :~ phase(choose), attack_choice(T2), not chokepoint(T2). [1@2]
+
 % ~~~~~~~~~~~~~~~~~ helpers ~~~~~~~~~~~~~~~~~~~~~
 
 % troop_diff(T,D): for each of my territories T bordering the target, D = my armies minus the target's armies
@@ -107,14 +108,14 @@ territory_left(C, N) :- my_territory(T1), in_continent(T1, C), N = #count{X : en
 closest(C, N2) :- #min{N : territory_left(C, N), N != 0} = N2, territory_left(C,N), N != 0.
 
 %prefer to attack within your own continent
-:~ phase(choose), attack(T,T2), in_continent(T2,C), territory_left(C,N), closest(C, N2), N != N2. [1@1]
+:~ phase(choose), attack(T,T2), in_continent(T2,C), territory_left(C,N), closest(C, N2), N != N2. [1@2]
 
 % Prefer the weakest enemy target. Combat is a flat 41.7% per roll regardless of
 % army size, so a small defender means fewer expected losses
 :~ phase(choose), attack_choice(T2), armies_present(T2,A2). [A2@3]
 
 %Ideally, want to control a point with low attack surface,
-chokepoint(T2) :- my_territory(T), enemy_territory(T2), #count{T : neighbor(T2,T), my_territory(T)} = 1.
+% chokepoint(T2) :- my_territory(T), enemy_territory(T2), #count{T : neighbor(T2,T), my_territory(T)} = 1.
 
 
 %Move (second lowest priority, since ends turn after)

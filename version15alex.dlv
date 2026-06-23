@@ -1,40 +1,10 @@
-%Confirmed Positive Changes
-
-
-
-%Fortify (Changed levels)
-:~ phase(fortify), closest(C, N2), place_choice(T), not assigned(T,C). [1@3]
-
-
-
-% Among border territories, prefer the one next to the weakest enemy.
-front_enemy(T, A2) :- phase(fortify), my_border(T), neighbor(T,T2), enemy_territory(T2), armies_present(T2,A2).
-min_front(T, M)    :- phase(fortify), my_border(T), #min{A2 : front_enemy(T,A2)} = M.
-:~ phase(fortify), place_choice(T), min_front(T,M). [M@2]
-
-
-
-%Move
-% Can now move if 2 away
-%Should eventually replace with recursion
-closer(T2) :- my_territory(T1), not my_border(T1), not my_border(T2),
-neighbor(T2,T3), my_border(T3), my_territory(T2), my_territory(T3).
-:~ phase(choose), move(MT,ET,A), my_territory(MT), my_territory(ET), not my_border(ET), not my_border(MT), 
-not closer(ET), armies_present(MT,A), A >= 4, A2 = A - 1. [A2@9]
-
-
-%Attack
-
-%Attack if more troops than enemies in continent
-enemies_in_continent(C, E) :- my_territory(T1), in_continent(T1,C), E = #count{A : armies_present(X,A), enemy_territory(X),
-in_continent(T,X), in_continent(T1,X)}.
-:~ phase(choose), attack(T,T2), in_continent(T,C), in_continent(T2,C), armies_present(T,A), enemies_in_continent(C,E),
-A < E + 2.[1@8]
-
-
-
-
-
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %                           %
+    %        Isle Wars          %
+    %        team - 5           %
+    %     Alex, Jonah, Henry    %
+    %                           %
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % =============== Derived Facts =================================
 
@@ -61,118 +31,101 @@ place_choice(T) | no_place_choice(T) :- territory(T), phase(fortify).
 :- phase(fortify), place_choice(T), not my_territory(T).
 
 % Prefer (cost if violated) placing on the front line rather than a safe interior territory
-:~ phase(fortify), place_choice(T), not my_border(T). [1@100]
+:- phase(fortify), place_choice(T), not my_border(T).
 
-
-
-
-
-%Can add more rules if planning on attacking certain territory based on winning continent
-%And trying to capture continent
-
-
-% Tie-breaker: among remaining options prefer the lowest-id territory, so the result is unique
+% Tie-breaker: among remaining options prefer the highest-id territory, so the result is unique
 :~ phase(fortify), place_choice(T), #max{T1 : my_territory(T1)} != T. [1@1]
 
 % fortify(T,A): place all A reinforcement armies (from to_fortify) on the chosen territory
 fortify(T, A) :- phase(fortify), to_fortify(A), place_choice(T).
 
-
+%Fortify prefers to fortify in the closest continent to completeness
+:~ phase(fortify), closest(C, N2), place_choice(T), not assigned(T,C). [1@3]
 
 % =========== Attack ===========================
 
 % Guess: each territory either is or isn't the single enemy target to attack this turn
 attack_choice(T2) | no_attack_choice(T2) :- phase(choose), adjacent(T2).
 
-% Require exactly one attack_choice
+% Require one or no attack choices
 :- phase(choose), #count{S:attack_choice(S)} > 1.
 
-% Attacking always happens after the choose step
-% phase(attack) :- phase(choose).
-% The target must actually border me (be adjacent), otherwise reject
+% territories to be attacked must be adjacent
 :- phase(choose), attack_choice(T2), not adjacent(T2).
+
+% make sure when we attack we have more than 2 armies (its a losing battle no matter what otherwise)
 :- phase(choose), best_from(T), armies_present(T,A), A <= 2.
+
+% make sure we have more armies thann the enemy teritory when attacking
 :- phase(choose), attack_from(T), attack_choice(T2), armies_present(T,A), armies_present(T2,A2), A <= A2. 
 
 % Expected ~1.4 of my armies lost per defender army; require source > 1.5 x target
 % (N1*2 > N2*3) or the attack is too likely to grind my stack down to 1 and lose the tile.
-
-%was 2 3(1.5). now 4 5 (1.25)
 :- phase(choose), attack_from(T), attack_choice(T2), armies_present(T,N1), armies_present(T2,N2), P = N1 * 2, Q = N2 * 3, P <= Q.
 
-
-%Move (second lowest priority, since ends turn after)
-% =========== Move =========================
-:~ phase(choose), move(MT,ET,A2), my_territory(MT), my_territory(ET), my_border(ET), not my_border(MT), armies_present(MT,A), A >= 6, A2 = A - 3. [A2/2@9]
-
-
-
-
-
-
-
-
-
-
-% not my_border(ET), not my_border(MT), not closer(T2), armies_present(MT,A), A >= 4, A2 = A - 1. [1@10]
-
-
-
-%Pass (Lowest priority)
-:~ pass. [1@20]
-
-
-% Penalize attacking when my source has too few armies vs the target (poor odds: my N1-3 < their N2)
-
-% :~ phase(attack), my_territory(T), neighbor(T,T2), attack_choice(T2), adjacent(T2), armies_present(T,N1), armies_present(T2,N2), N1 - 3 < N2. [1@3]
-% (Removed: redundant soft odds penalty -- the hard odds gate on line 65 already covers this.)
-
-% :- phase(choose), my_territory(T), neighbor(T,T2), attack_choice(T2), adjacent(T2), armies_present(T,N1), armies_present(T2,N2), N1 - 3 < N2.
 % Penalize attacks that cross into a different continent (prefer attacks within the same continent)
 :~ phase(choose), attack(T,T2), in_continent(T,C), in_continent(T2,C2), C != C2.[1@2]
+
+% Among border territories, prefer the one next to the weakest enemy.
+front_enemy(T, A2) :- phase(fortify), my_border(T), neighbor(T,T2), enemy_territory(T2), armies_present(T2,A2).
+min_front(T, M)    :- phase(fortify), my_border(T), #min{A2 : front_enemy(T,A2)} = M.
+:~ phase(fortify), place_choice(T), min_front(T,M). [M@2]
+
+%Attack if more troops than enemies in continent
+enemies_in_continent(C, E) :- my_territory(T1), in_continent(T1,C), E = #count{A : armies_present(X,A), enemy_territory(X),
+in_continent(T,X), in_continent(T1,X)}.
+:~ phase(choose), attack(T,T2), in_continent(T,C), in_continent(T2,C), armies_present(T,A), enemies_in_continent(C,E),
+A < E + 2.[1@8]
+
+
+% ~~~~~~~~~~~~~~~~~ helpers ~~~~~~~~~~~~~~~~~~~~~
+
 % troop_diff(T,D): for each of my territories T bordering the target, D = my armies minus the target's armies
 troop_diff(T, D) :- phase(choose), my_territory(T), neighbor(T,T2), attack_choice(T2), #max{N : armies_present(T, N)} = D1, armies_present(T2, D2), D = D1 - D2.
 
-
+% find the maximum difference between troops on my territories and enemeies
 max_diff(D2) :-phase(choose), #max{D,T : troop_diff(T, D)} = D2.
-
-
-
-
 
 % attack_from(T): one of my territories whose advantage over the target equals the best advantage
 attack_from(T) :- phase(choose), my_territory(T), attack_choice(T2), neighbor(T,T2), armies_present(T,N), armies_present(T2,N2), max_diff(D), N-N2=D.
-%CHoose between all with the greatest difference in armies
+
+%Choose between all with the greatest difference in armies and find one to attack (min territory id)
 best_from(M) :- phase(choose), attack_from(M), M = #min{T : attack_from(T)}.
 
-% attack(MT,ET): the final move — attack chosen target ET from chosen source MT
+% attack(MT,ET): the final move -> attack chosen target ET from chosen source MT
 attack(MT, ET) :- phase(choose), best_from(MT), attack_choice(ET).
-
 
 %Sets it to pass if not attacking
 -pass :- attack(MT, ET), phase(choose).
 pass :- not -pass, phase(choose).
 
-
-% Tries to conquer an entire continent by counting how many more territories are required.
+% Tries to conquer an entire continent by counting how many more territories are required (enemy territories left in a continent you are in).
 territory_left(C, N) :- my_territory(T1), in_continent(T1, C), N = #count{X : enemy_territory(X), in_continent(X, C)}.
-
-
-
-
-
-
 
 %Finds the closest continent to completeness. I set it to be the minimum, but not 0 (Already done)
 closest(C, N2) :- #min{N : territory_left(C, N), N != 0} = N2, territory_left(C,N), N != 0.
-%Very low prioritization
+
+%prefer to attack within your own continent
 :~ phase(choose), attack(T,T2), in_continent(T2,C), territory_left(C,N), closest(C, N2), N != N2. [1@1]
 
 % Prefer the weakest enemy target. Combat is a flat 41.7% per roll regardless of
-% army size, so a small defender means fewer expected losses; a 1-army target can be
-% taken in a single win.
-:~ phase(choose), attack_choice(T2), armies_present(T2,A2). [A2@1]
+% army size, so a small defender means fewer expected losses
+:~ phase(choose), attack_choice(T2), armies_present(T2,A2). [A2@3]
 
+%Move (second lowest priority, since ends turn after)
+% =========== Move =========================
+:~ phase(choose), move(MT,ET,A2), my_territory(MT), my_territory(ET), my_border(ET), not my_border(MT), armies_present(MT,A), A >= 6, A2 = A - 3. [A2/2@9]
+
+%Move
+% Can now move if 2 away
+%Should eventually replace with recursion
+closer(T2) :- my_territory(T1), not my_border(T1), not my_border(T2),
+neighbor(T2,T3), my_border(T3), my_territory(T2), my_territory(T3).
+:~ phase(choose), move(MT,ET,A), my_territory(MT), my_territory(ET), not my_border(ET), not my_border(MT), 
+not closer(ET), armies_present(MT,A), A >= 4, A2 = A - 1. [A2@9]
+
+%Pass (Lowest priority)
+:~ pass. [1@20]
 
 %=========== Conquer Phase =================
 
@@ -188,5 +141,5 @@ move(MT,ET,A) :- conquered(MT,ET), new_border(ET), armies_present(MT,A2), A2 > 3
 %Conquered tile is on the front but we're low on troops (move all but 1)
 move(MT,ET,A) :- conquered(MT,ET), new_border(ET), armies_present(MT,A2), A2 <= 3, A = A2 - 1.
 
-%Conquered tile is interior (safe): be aggressive and move all but 1 to keep advancing.
+%Conquered tile is interior (safe): move just one army.
 move(MT,ET,1) :- conquered(MT,ET), not new_border(ET), armies_present(MT,A2).

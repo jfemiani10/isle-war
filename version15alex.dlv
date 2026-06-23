@@ -42,9 +42,6 @@ fortify(T, A) :- phase(fortify), to_fortify(A), place_choice(T).
 %Fortify prefers to fortify in the closest continent to completeness
 :~ phase(fortify), closest(C, N), not place_choice(T), in_continent(T,C), territory_left(C, N). [1@3]
 
-%Target chokepoint (Should also function to break up continents)
-:~ phase(choose), attack_choice(T2), not chokepoint(T2). [1@2]
-
 % =========== Attack ===========================
 
 % Guess: each territory either is or isn't the single enemy target to attack this turn
@@ -80,8 +77,8 @@ in_continent(T,X), in_continent(T1,X)}.
 :~ phase(choose), attack(T,T2), in_continent(T,C), in_continent(T2,C), armies_present(T,A), enemies_in_continent(C,E),
 A < E + 2.[1@8]
 
-%Ideally, want to control a point with low attack surface,
-chokepoint(T2) :- my_territory(T), enemy_territory(T2), #count{T : neighbor(T2,T), my_territory(T)} = 1.
+%Target chokepoint (Should also function to break up continents)
+:~ phase(choose), attack_choice(T2), not chokepoint(T2). [1@2]
 % ~~~~~~~~~~~~~~~~~ helpers ~~~~~~~~~~~~~~~~~~~~~
 
 % troop_diff(T,D): for each of my territories T bordering the target, D = my armies minus the target's armies
@@ -115,6 +112,10 @@ closest(C, N2) :- #min{N : territory_left(C, N), N != 0} = N2, territory_left(C,
 % Prefer the weakest enemy target. Combat is a flat 41.7% per roll regardless of
 % army size, so a small defender means fewer expected losses
 :~ phase(choose), attack_choice(T2), armies_present(T2,A2). [A2@3]
+
+%Ideally, want to control a point with low attack surface,
+chokepoint(T2) :- my_territory(T), enemy_territory(T2), #count{T : neighbor(T2,T), my_territory(T)} = 1.
+
 
 %Move (second lowest priority, since ends turn after)
 % =========== Move =========================

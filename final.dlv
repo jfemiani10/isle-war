@@ -145,14 +145,17 @@ not closer(ET), armies_present(MT,A), A >= 4, A2 = A - 1. [A2@9]
 %Make conquered happen when attacking, and opponent becomes 0
 conquered(MT,ET) :- phase(conquer), attack(MT, ET), armies_present(ET, N2), armies_present(MT,N), N > N2, N2 = 0, N > 1.
 
-%New border is a territory that was just conquered ans is a border territory (front-line)
+%New border is a territory that was just conquered and is a border territory (front-line)
 new_border(ET) :- conquered(MT,ET), neighbor(ET,X), X != MT, not my_territory(X).
 
-%Conquered tile sits on the new front and we have spares (leave 3 armies behind, move the rest)
-% move(MT,ET,A) :- conquered(MT,ET), new_border(ET), armies_present(MT,A2), A2 > 3, A = A2 - 3.
+%Conquered tile is on the front
+move(MT,ET,A) :- conquered(MT,ET), new_border(ET), armies_present(MT,A2), not my_border(MT), A = A2 - 1.
 
-%Conquered tile is on the front but we're low on troops (move all but 1)
-move(MT,ET,A) :- conquered(MT,ET), new_border(ET), armies_present(MT,A2), A = A2 - 1.
+%Conquered tile is on the front but we're exposed to a counterattack. Leave 3 to disincentivize.
+move(MT,ET,A) :- conquered(MT,ET), new_border(ET), armies_present(MT,A2), my_border(MT), A2 > 4, A = A2 - 3.
+
+%If not enough troops to do this, stick to original plan.
+move(MT,ET,A) :- conquered(MT,ET), new_border(ET), armies_present(MT,A2), my_border(MT), A2 <= 4, A = A2 - 1.
 
 %Conquered tile is interior (safe): move just one army.
 move(MT,ET,1) :- conquered(MT,ET), not new_border(ET), armies_present(MT,A2).

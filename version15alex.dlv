@@ -64,7 +64,7 @@ attack_choice(T2) | no_attack_choice(T2) :- phase(choose), adjacent(T2).
 :- phase(choose), attack_from(T), attack_choice(T2), armies_present(T,N1), armies_present(T2,N2), P = N1 * 2, Q = N2 * 3, P <= Q.
 
 % Penalize attacks that cross into a different continent (prefer attacks within the same continent)
-:~ phase(choose), attack(T,T2), in_continent(T,C), in_continent(T2,C2), C != C2.[1@2]
+:~ phase(choose), attack(T,T2), in_continent(T,C), in_continent(T2,C2), C != C2.[1@3]
 
 % Among border territories, prefer the one next to the weakest enemy.
 front_enemy(T, A2) :- phase(fortify), my_border(T), neighbor(T,T2), enemy_territory(T2), armies_present(T2,A2).

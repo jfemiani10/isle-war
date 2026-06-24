@@ -19,11 +19,11 @@ enemy_territory(T) :- owner(T, N), my_id(N2), N != N2.
 % my_border(T): one of my territories that touches an enemy (a front-line territory)
 my_border(T)  :- my_territory(T), neighbor(T,T2), not my_territory(T2).
 
-% #show enemy_territory/1.
 % =============== Fortify Phase ====================================
 
 % Guess: each territory either is or isn't the one place to reinforce (generates candidate placements)
 place_choice(T) | no_place_choice(T) :- territory(T), phase(fortify).
+
 % Require exactly one place_choice (reject any answer set that picks zero or several)
 :- phase(fortify), #count{S:place_choice(S)} != 1.
 
@@ -60,7 +60,6 @@ attack_choice(T2) | no_attack_choice(T2) :- phase(choose), adjacent(T2).
 :- phase(choose), attack_from(T), attack_choice(T2), armies_present(T,A), armies_present(T2,A2), A <= A2. 
 
 % Expected ~1.4 of my armies lost per defender army; require source > 1.5 x target
-% (N1*2 > N2*3) or the attack is too likely to grind my stack down to 1 and lose the tile.
 :- phase(choose), attack_from(T), attack_choice(T2), armies_present(T,N1), armies_present(T2,N2), P = N1 * 2, Q = N2 * 3, P <= Q.
 
 % Penalize attacks that cross into a different continent (prefer attacks within the same continent)
@@ -77,10 +76,7 @@ in_continent(T,X), in_continent(T1,X)}.
 :~ phase(choose), attack(T,T2), in_continent(T,C), in_continent(T2,C), armies_present(T,A), enemies_in_continent(C,E),
 A < E + 2.[1@8]
 
-%Target chokepoint (Should also function to break up continents)
-% :~ phase(choose), attack_choice(T2), not chokepoint(T2). [1@2]
-
-% ~~~~~~~~~~~~~~~~~ helpers ~~~~~~~~~~~~~~~~~~~~~
+% ~~~~~~~~~~~~~~~~~ Helper Predicates ~~~~~~~~~~~~~~~~~~~~~
 
 % troop_diff(T,D): for each of my territories T bordering the target, D = my armies minus the target's armies
 troop_diff(T, D) :- phase(choose), my_territory(T), neighbor(T,T2), attack_choice(T2), #max{N : armies_present(T, N)} = D1, armies_present(T2, D2), D = D1 - D2.
@@ -121,17 +117,13 @@ closest(C, N2) :- #min{N : territory_left(C, N), N != 0} = N2, territory_left(C,
 :~ phase(choose), attack_choice(T2), enemy_territory(X), neighbor(T2,X). [1@4, T2, X]
 % =========================================================
 
-%Ideally, want to control a point with low attack surface,
-% chokepoint(T2) :- my_territory(T), enemy_territory(T2), #count{T : neighbor(T2,T), my_territory(T)} = 1.
 
 
 %Move (second lowest priority, since ends turn after)
 % =========== Move =========================
 :~ phase(choose), move(MT,ET,A2), my_territory(MT), my_territory(ET), my_border(ET), not my_border(MT), armies_present(MT,A), A >= 6, A2 = A - 3. [A2/2@9]
 
-%Move
 % Can now move if 2 away
-%Should eventually replace with recursion
 closer(T2) :- my_territory(T1), not my_border(T1), not my_border(T2),
 neighbor(T2,T3), my_border(T3), my_territory(T2), my_territory(T3).
 :~ phase(choose), move(MT,ET,A), my_territory(MT), my_territory(ET), not my_border(ET), not my_border(MT), 

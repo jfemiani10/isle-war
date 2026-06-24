@@ -10,7 +10,6 @@
 
 % adjacent(T2): T2 is an enemy territory that borders one of my territories (a valid attack target)
 adjacent(T2) :- my_territory(T), neighbor(T,T2), not my_territory(T2).
-% #show adjacent/1.
 
 % my_territory(T): a territory I own (its owner equals my player id)
 my_territory(T) :- owner(T, N), my_id(N).
@@ -27,10 +26,10 @@ place_choice(T) | no_place_choice(T) :- territory(T), phase(fortify).
 % Require exactly one place_choice (reject any answer set that picks zero or several)
 :- phase(fortify), #count{S:place_choice(S)} != 1.
 
-% The reinforced territory must be one I own
+% The reinforced territory must be one tht I own
 :- phase(fortify), place_choice(T), not my_territory(T).
 
-% Prefer (cost if violated) placing on the front line rather than a safe interior territory
+% Prefer placing on the front line rather than a safe interior territory
 :- phase(fortify), place_choice(T), not my_border(T).
 
 % Tie-breaker: among remaining options prefer the highest-id territory, so the result is unique
@@ -121,9 +120,10 @@ closest(C, N2) :- #min{N : territory_left(C, N), N != 0} = N2, territory_left(C,
 
 %Move (second lowest priority, since ends turn after)
 % =========== Move =========================
+%Moves if adjacent to border.
 :~ phase(choose), move(MT,ET,A2), my_territory(MT), my_territory(ET), my_border(ET), not my_border(MT), armies_present(MT,A), A >= 6, A2 = A - 3. [A2/2@9]
 
-% Can now move if 2 away
+% Can now move towards border if 2 away
 closer(T2) :- my_territory(T1), not my_border(T1), not my_border(T2),
 neighbor(T2,T3), my_border(T3), my_territory(T2), my_territory(T3).
 :~ phase(choose), move(MT,ET,A), my_territory(MT), my_territory(ET), not my_border(ET), not my_border(MT), 
